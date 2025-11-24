@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bildkonverterare</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e8ebff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .format-selector {
+            margin: 30px 0;
+            display: none;
+        }
+
+        .format-selector label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .format-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+        }
+
+        .format-btn {
+            padding: 12px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .format-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .format-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .quality-slider {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .quality-slider label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .quality-value {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .preview-area {
+            margin: 20px 0;
+            display: none;
+            text-align: center;
+        }
+
+        .preview-area img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .file-info {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .convert-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: none;
+        }
+
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .convert-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ Bildkonverterare</h1>
+        <p class="subtitle">Konvertera dina bilder mellan olika format på sekunder</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <p><strong>Klicka för att välja en bild</strong></p>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">eller dra och släpp här</p>
+            <p style="margin-top: 10px; font-size: 0.8em; color: #999;">PNG, JPG, WebP, GIF, BMP</p>
+        </div>
+
+        <input type="file" id="fileInput" accept="image/*">
+
+        <div class="preview-area" id="previewArea">
+            <img id="preview" src="" alt="Förhandsvisning">
+            <div class="file-info" id="fileInfo"></div>
+        </div>
+
+        <div class="format-selector" id="formatSelector">
+            <label>Välj utformat:</label>
+            <div class="format-buttons">
+                <button class="format-btn" data-format="png">PNG</button>
+                <button class="format-btn" data-format="jpeg">JPG</button>
+                <button class="format-btn" data-format="webp">WebP</button>
+                <button class="format-btn" data-format="gif">GIF</button>
+                <button class="format-btn" data-format="bmp">BMP</button>
+            </div>
+        </div>
+
+        <div class="quality-slider" id="qualitySlider">
+            <label>Kvalitet:</label>
+            <input type="range" id="quality" min="1" max="100" value="92">
+            <div class="quality-value"><span id="qualityValue">92</span>%</div>
+        </div>
+
+        <button class="convert-btn" id="convertBtn">Konvertera och Ladda Ner</button>
+
+        <div class="loader" id="loader"></div>
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewArea = document.getElementById('previewArea');
+        const preview = document.getElementById('preview');
+        const fileInfo = document.getElementById('fileInfo');
+        const formatSelector = document.getElementById('formatSelector');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const quality = document.getElementById('quality');
+        const qualityValue = document.getElementById('qualityValue');
+        const convertBtn = document.getElementById('convertBtn');
+        const loader = document.getElementById('loader');
+        const status = document.getElementById('status');
+
+        let currentFile = null;
+        let selectedFormat = null;
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showStatus('Vänligen välj en bildfil!', 'error');
+                return;
+            }
+
+            currentFile = file;
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                previewArea.style.display = 'block';
+                formatSelector.style.display = 'block';
+                
+                const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+                const currentFormat = file.type.split('/')[1].toUpperCase();
+                fileInfo.innerHTML = `
+                    <strong>Filnamn:</strong> ${file.name}<br>
+                    <strong>Nuvarande format:</strong> ${currentFormat}<br>
+                    <strong>Storlek:</strong> ${sizeMB} MB
+                `;
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // Format selection
+        document.querySelectorAll('.format-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedFormat = btn.dataset.format;
+                
+                // Show quality slider for lossy formats
+                if (selectedFormat === 'jpeg' || selectedFormat === 'webp') {
+                    qualitySlider.style.display = 'block';
+                } else {
+                    qualitySlider.style.display = 'none';
+                }
+                
+                convertBtn.style.display = 'block';
+            });
+        });
+
+        // Quality slider
+        quality.addEventListener('input', (e) => {
+            qualityValue.textContent = e.target.value;
+        });
+
+        // Convert and download
+        convertBtn.addEventListener('click', async () => {
+            if (!currentFile || !selectedFormat) return;
+
+            loader.style.display = 'block';
+            convertBtn.disabled = true;
+            status.style.display = 'none';
+
+            try {
+                const img = new Image();
+                img.src = preview.src;
+
+                await new Promise((resolve) => {
+                    img.onload = resolve;
+                });
+
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                const mimeType = `image/${selectedFormat}`;
+                const qualityValue = quality.value / 100;
+
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    const fileName = currentFile.name.replace(/\.[^/.]+$/, '');
+                    a.href = url;
+                    a.download = `${fileName}.${selectedFormat === 'jpeg' ? 'jpg' : selectedFormat}`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                    loader.style.display = 'none';
+                    convertBtn.disabled = false;
+                    showStatus('✅ Konvertering klar! Filen laddas ner...', 'success');
+                }, mimeType, qualityValue);
+
+            } catch (error) {
+                loader.style.display = 'none';
+                convertBtn.disabled = false;
+                showStatus('❌ Ett fel uppstod vid konvertering', 'error');
+            }
+        });
+
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
